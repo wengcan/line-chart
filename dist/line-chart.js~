@@ -67,8 +67,7 @@ angular.module('n3-charts.linechart', ['n3charts.utils'])
       }
 
       if (!isThumbnail) {
-        //n3utils.addTooltips(svg, dimensions, options.axes);
-        n3utils.addGuideLine(svg, dimensions);
+        n3utils.addTooltips(svg, dimensions, options.axes);
       }
     };
 
@@ -327,7 +326,7 @@ drawLegend: function(svg, series, dimensions) {
       'transform': 'translate(10, 3)',
       'text-rendering': 'geometric-precision'
     })
-    .text(function(s) { return s.label || s.y;});
+    .text(function(s) {return s.label || s.y;});
 
   return this;
 },
@@ -421,19 +420,15 @@ bootstrap: function(element, dimensions) {
 
   var width = dimensions.width;
   var height = dimensions.height;
+
   var svg = d3.select(element).append('svg')
     .attr('width', width)
     .attr('height', height)
     .append('g')
-        .attr("class","angulard3")
-        .attr('transform', 'translate(' + dimensions.left +
-            ',' + dimensions.top + ')'
-        );
-    d3.select('.toolTipMain').remove();
-    d3.select(element).append('div')
-        .attr({
-            "class":"toolTipMain"
-             });
+      .attr('transform', 'translate(' + dimensions.left +
+        ',' + dimensions.top + ')'
+      );
+
   return svg;
 },
 
@@ -465,7 +460,6 @@ getDataPerSeries: function(data, options) {
   series.forEach(function(s) {
     var seriesData = {
       xFormatter: axes.x.tooltipFormatter,
-      YFormatter: axes.y.tooltipFormatter,
       index: straightenedData.length,
       name: s.y,
       values: [],
@@ -636,8 +630,8 @@ createAxes: function(svg, dimensions, axesOptions) {
     ? d3.scale.log().clamp(true).rangeRound([height, 0])
     : d3.scale.linear().rangeRound([height, 0]);
 
-  var xAxis = d3.svg.axis().scale(x).orient('bottom').tickFormat(axesOptions.x.labelFunction).ticks(width/120).tickSize(-height, 0, 0);
-  var yAxis = d3.svg.axis().scale(y).orient('left').tickFormat(axesOptions.y.labelFunction).tickSize(-width, 0, 0);
+  var xAxis = d3.svg.axis().scale(x).orient('bottom').tickFormat(axesOptions.x.labelFunction);
+  var yAxis = d3.svg.axis().scale(y).orient('left');
   var y2Axis = d3.svg.axis().scale(y2).orient('right');
 
   var style = function(group) {
@@ -765,27 +759,6 @@ haveSecondYAxis: function(series) {
   return doesHave;
 },
 
-
-addGuideLine :function(svg,dimensions){
-
-    var width =dimensions.width -dimensions.left -dimensions.right;
-    var height = dimensions.height -dimensions.top -dimensions.bottom;
-
-    var guideLine = svg.append('g')
-        .attr({
-          'id': 'guideLine',
-          'class' : 'guideLine',
-          'opacity': 0
-        });    
-        guideLine.append('line')
-            .attr({
-            'x1':'0',
-            'x2':'0',
-            'y1':'0',
-            'y2':height
-        });   
-    
-},
 addTooltips: function (svg, dimensions, axesOptions) {
   var width = dimensions.width;
   var height = dimensions.height;
@@ -862,53 +835,19 @@ addTooltips: function (svg, dimensions, axesOptions) {
 },
 
 onMouseOver: function(svg, target) {
-  //this.updateXTooltip(svg, target);
-  this.updateMyTooltip(svg, target);
-  this.updateGuideLine(svg, target);
+  this.updateXTooltip(svg, target);
 
   if (target.series.axis === 'y2') {
-    //this.updateY2Tooltip(svg, target);
+    this.updateY2Tooltip(svg, target);
   } else {
-    //this.updateYTooltip(svg, target);
+    this.updateYTooltip(svg, target);
   }
 },
 
 onMouseOut: function(svg) {
   this.hideTooltips(svg);
-  this.hideGuideLine(svg);
 },
 
-updateGuideLine: function(svg ,target){
-    var guideLine=svg.select("#guideLine")
-        .transition()
-        .attr({
-            'opacity': 1.0,
-            'transform': 'translate(' + target.x + ',0)'
-          });       
-    
-    
-},
-updateMyTooltip: function(svg, target){
-  if (target.series.xFormatter) {
-    textX = '' + target.series.xFormatter(target.datum.x);
-  } else {
-    textX = '' + target.datum.x;
-  }
-  if (target.series.YFormatter) {
-      textY='' + target.series.YFormatter(target.datum.value);
-  }else{
-      textY = '' + target.datum.value;
-  } ;
-  
-  d3.select('.toolTipMain')
-    .attr({
-        'style':'left:'+( 100+parseInt(target.x) )+'px;top:' + target.y + 'px;opacity:1.0'
-    })
-    .html('<div><p>'+textX+'</p><p>'+textX+'  '+textY+'</p></div>'); 
-  
-    //console.log(textX,textY);
-    
-},
 updateXTooltip: function(svg, target) {
   var xTooltip = svg.select("#xTooltip")
     .transition()
@@ -1019,8 +958,6 @@ getY2TooltipPath: function(w) {
 },
 
 hideTooltips: function(svg) {
-  d3.select(".toolTipMain")
-    .attr({ 'style': 'opacity:0' });    
   svg.select("#xTooltip")
     .transition()
     .attr({ 'opacity': 0 });
@@ -1032,12 +969,6 @@ hideTooltips: function(svg) {
   svg.select("#y2Tooltip")
     .transition()
     .attr({'opacity': 0 });
-},
-
-hideGuideLine:function(svg){
-  svg.select("#guideLine")
-    .transition()
-    .attr({ 'opacity': 0 });    
 },
 
 activateZoom: function(element, svg, axes, dimensions, columnWidth) {
