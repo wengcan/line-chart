@@ -1,6 +1,7 @@
 /*! line-chart - v1.0.2 - 2013-10-22
 * https://github.com/n3-charts/line-chart
 * Copyright (c) 2013 n3-charts  Licensed ,  */
+/xxxxxxxxxxxxx/
 angular.module('n3-charts.linechart', ['n3charts.utils'])
 
 .directive('linechart', ['n3utils', '$window', '$timeout', function(n3utils, $window, $timeout) {
